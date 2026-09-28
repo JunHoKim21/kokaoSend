@@ -44,9 +44,9 @@ export const SendControlsPanel: React.FC<SendControlsPanelProps> = ({
   onCopyAllMessages,
 }) => {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 space-y-3">
       {/* Top Controls: Search Mode, Delay & Primary CTA */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Left Options: Search Mode & Delay */}
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           {/* Search Mode Select Box */}
@@ -158,8 +158,8 @@ export const SendControlsPanel: React.FC<SendControlsPanelProps> = ({
       </div>
 
       {/* Real-time Status Console */}
-      <div className="bg-slate-900 rounded-xl p-3 border border-slate-800 font-mono text-xs">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] text-slate-400">
+      <div className="bg-slate-900 rounded-xl p-2.5 border border-slate-800 font-mono text-xs">
+        <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-800 text-[11px] text-slate-400">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="font-semibold text-slate-300">전송 콘솔 로그</span>
@@ -179,9 +179,9 @@ export const SendControlsPanel: React.FC<SendControlsPanelProps> = ({
           )}
         </div>
 
-        <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1">
+        <div className="max-h-20 overflow-y-auto space-y-1 pr-1">
           {logs.length === 0 ? (
-            <div className="py-3 text-center text-slate-500 text-[11px]">
+            <div className="py-2 text-center text-slate-500 text-[11px]">
               &gt; 아직 전송 기록이 없습니다. '메시지 보내기'를 누르면 실시간 전송 내역이 표시됩니다.
             </div>
           ) : (

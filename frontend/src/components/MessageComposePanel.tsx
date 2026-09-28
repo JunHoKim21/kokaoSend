@@ -88,29 +88,29 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
 
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col h-[780px] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col h-[365px] overflow-hidden">
       {/* Header */}
-      <div className="p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/70 to-white">
+      <div className="p-4 pb-3 border-b border-slate-100 bg-gradient-to-b from-slate-50/70 to-white">
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 rounded-lg bg-amber-50 text-amber-700">
-                <PenLine className="w-5 h-5" />
+            <div className="flex items-center gap-2 mb-0.5">
+              <div className="p-1 rounded-lg bg-amber-50 text-amber-700">
+                <PenLine className="w-4 h-4" />
               </div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight">
                 어떤 말씀을 전할까요?
               </h2>
             </div>
-            <p className="text-xs text-slate-500 pl-8">
+            <p className="text-[11px] text-slate-500 pl-7">
               정성 담긴 말씀과 공지, 사진을 함께 준비해보세요
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={onOpenVersePicker}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100/80 rounded-lg transition-colors border border-blue-200/70"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100/80 rounded-lg transition-colors border border-blue-200/70"
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>성경 구절 추천</span>
@@ -118,7 +118,7 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
             <button
               type="button"
               onClick={onOpenPreview}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-900 bg-[#FEE500] hover:bg-[#FDD835] active:bg-[#FBC02D] rounded-lg transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-amber-900 bg-[#FEE500] hover:bg-[#FDD835] active:bg-[#FBC02D] rounded-lg transition-all shadow-xs"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>카톡 미리보기</span>
@@ -127,7 +127,7 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
         </div>
 
         {/* Photo Attachment Bar */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
+        <div className="mt-2.5 pt-2 border-t border-slate-100">
           <input
             type="file"
             ref={fileInputRef}
@@ -136,7 +136,7 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
             className="hidden"
           />
 
-          <div className="flex items-center justify-between gap-3 p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+          <div className="flex items-center justify-between gap-2 p-2 bg-slate-50 border border-slate-200/80 rounded-xl">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -222,23 +222,20 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
         </div>
 
         {/* Dynamic Variable Chips & Guide Card */}
-        <div className="mt-3 p-3 bg-blue-50/70 border border-blue-100 rounded-xl">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-blue-900 leading-relaxed">
-              <span className="font-semibold">이름 치환 안내:</span> 본문에{' '}
-              <code className="font-mono font-bold bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200/80">
+        <div className="mt-2 p-2.5 bg-blue-50/70 border border-blue-100 rounded-xl">
+          <div className="flex items-start gap-1.5">
+            <Info className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="text-[11px] text-blue-900 leading-snug">
+              <span className="font-semibold">이름 치환:</span> 본문에{' '}
+              <code className="font-mono font-bold bg-white px-1 py-0.5 rounded text-blue-700 border border-blue-200/80">
                 {'{이름}'}
               </code>{' '}
-              을 넣으면 각 순원의 이름으로 쏙 치환됩니다.
-              <span className="text-blue-700/80 text-[11px] block mt-0.5">
-                예: 안녕하세요 {'{이름}'} 순원님! ➔ 안녕하세요 김준호 순원님!
-              </span>
+              을 넣으면 각 순원 이름으로 자동 치환됩니다.
             </div>
           </div>
 
-          <div className="mt-2.5 pt-2 border-t border-blue-100/80 flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-medium text-blue-700 mr-1">
+          <div className="mt-2 pt-1.5 border-t border-blue-100/80 flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-medium text-blue-700 mr-0.5">
               빠른 삽입:
             </span>
             {[
@@ -252,7 +249,7 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
                 key={tag}
                 type="button"
                 onClick={() => insertVariable(tag)}
-                className="px-2 py-0.5 text-xs font-mono font-semibold bg-white hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-md transition-colors shadow-2xs"
+                className="px-1.5 py-0.5 text-[11px] font-mono font-semibold bg-white hover:bg-blue-100 text-blue-700 border border-blue-200 rounded transition-colors shadow-2xs"
               >
                 + {label}
               </button>
@@ -262,18 +259,18 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
       </div>
 
       {/* Main Message Textarea */}
-      <div className="flex-1 flex flex-col p-4">
+      <div className="flex-1 min-h-0 flex flex-col p-3">
         <textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => onChangeMessage(e.target.value)}
           placeholder="순원들에게 전할 정성 담긴 말씀과 공지사항을 입력하세요..."
-          className="flex-1 w-full p-4 bg-slate-50/60 rounded-xl border border-slate-200 text-slate-800 text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-sans"
+          className="flex-1 min-h-[90px] w-full p-3 bg-slate-50/60 rounded-xl border border-slate-200 text-slate-800 text-xs sm:text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-sans"
         />
 
         {/* Textarea Footer Stats */}
-        <div className="mt-2 flex items-center justify-between text-xs text-slate-400 px-1">
-          <div className="flex items-center gap-3">
+        <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-400 px-1">
+          <div className="flex items-center gap-2">
             <span>
               글자 수:{' '}
               <strong className="text-slate-600 font-mono tabular-nums">
@@ -294,7 +291,7 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
           <button
             type="button"
             onClick={onOpenTemplates}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
+            className="text-[11px] text-blue-600 hover:text-blue-700 font-medium hover:underline"
           >
             기본 템플릿 다시 불러오기
           </button>

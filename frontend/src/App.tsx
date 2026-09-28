@@ -382,9 +382,9 @@ export default function App() {
       />
 
       {/* Main App Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 flex-1 w-full">
         {/* Two-Column Grid matching the user's software workflow */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
           {/* Left Panel: Recipients List (5 cols on wide screens) */}
           <section className="lg:col-span-5 w-full">
             <MemberListPanel
@@ -405,7 +405,7 @@ export default function App() {
           </section>
 
           {/* Right Panel: Message Compose & Send Controls (7 cols on wide screens) */}
-          <section className="lg:col-span-7 w-full space-y-5">
+          <section className="lg:col-span-7 w-full space-y-3.5">
             <MessageComposePanel
               message={message}
               onChangeMessage={setMessage}

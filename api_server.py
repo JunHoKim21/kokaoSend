@@ -245,9 +245,9 @@ if __name__ == "__main__":
         window = webview.create_window(
             title="순원 말씀 알림이",
             url="http://127.0.0.1:5000",
-            width=1320,
-            height=880,
-            min_size=(1050, 720),
+            width=1340,
+            height=860,
+            min_size=(1050, 680),
             text_select=True,
         )
         # 창이 닫히면 전체 프로세스 자동 종료
