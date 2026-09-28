@@ -225,17 +225,37 @@ def serve_react(path):
     return "React 빌드 파일이 없습니다. frontend/dist 폴더를 확인하세요.", 404
 
 if __name__ == "__main__":
-    import webbrowser
     print("===================================================")
-    print("   순원 말씀 알림이가 시작되었습니다.")
-    print("   접속 주소: http://localhost:5000")
-    print("   프로그램 사용 중에는 이 창을 닫지 마세요.")
+    print("   순원 말씀 알림이 데스크톱 앱을 실행합니다.")
     print("===================================================")
 
-    def _open_ui():
-        time.sleep(1.2)
-        webbrowser.open("http://localhost:5000")
+    # 1. Flask 서버를 백그라운드 스레드로 기동
+    flask_thread = threading.Thread(
+        target=lambda: app.run(host="127.0.0.1", port=5000, debug=False, threaded=True),
+        daemon=True,
+    )
+    flask_thread.start()
 
-    threading.Thread(target=_open_ui, daemon=True).start()
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    # 2. 서버 시작 대기
+    time.sleep(0.8)
+
+    # 3. pywebview 전용 윈도우 창 실행
+    try:
+        import webview
+        window = webview.create_window(
+            title="순원 말씀 알림이",
+            url="http://127.0.0.1:5000",
+            width=1320,
+            height=880,
+            min_size=(1050, 720),
+            text_select=True,
+        )
+        # 창이 닫히면 전체 프로세스 자동 종료
+        webview.start()
+    except Exception as e:
+        import webbrowser
+        print(f"전용 창 실행 실패({e}), 기본 브라우저로 엽니다.")
+        webbrowser.open("http://127.0.0.1:5000")
+        flask_thread.join()
+
 
