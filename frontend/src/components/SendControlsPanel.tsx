@@ -61,7 +61,7 @@ export const SendControlsPanel: React.FC<SendControlsPanelProps> = ({
             </select>
           </div>
 
-          {/* Delay Control */}
+          {/* Delay Control & Quick Presets */}
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-slate-500" />
             <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">
@@ -77,12 +77,50 @@ export const SendControlsPanel: React.FC<SendControlsPanelProps> = ({
                 onChange={(e) =>
                   onChangeSendDelay(Math.max(0.2, parseFloat(e.target.value) || 0.5))
                 }
-                className="w-14 text-center text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded-lg py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-14 text-center text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded-lg py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white"
               />
               <span className="text-xs font-medium text-slate-500">초</span>
             </div>
+
+            {/* Quick Speed Preset Buttons */}
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button
+                type="button"
+                onClick={() => onChangeSendDelay(0.5)}
+                className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                  sendDelay <= 0.8
+                    ? 'bg-white text-amber-800 shadow-2xs font-bold border border-amber-200'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="소규모(10~30명) 빠른 발송 권장 (0.5초)"
+              >
+                ⚡ 쾌속 0.5s
+              </button>
+              <button
+                type="button"
+                onClick={() => onChangeSendDelay(1.5)}
+                className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                  sendDelay >= 1.2
+                    ? 'bg-white text-emerald-800 shadow-2xs font-bold border border-emerald-200'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="50명~500명 이상 대량 발송 시 카톡 스팸 제재 방지용 안전 모드 (1.5초)"
+              >
+                🛡️ 안전 1.5s
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Bulk Sending Warning Banner */}
+        {selectedCount >= 30 && sendDelay < 1.0 && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 w-full">
+            <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>
+              <strong>대량 발송 주의:</strong> 30명 이상 발송 시에는 카카오톡 스팸 제재(계정 차단) 방지를 위해 <strong>[🛡️ 안전 1.5s]</strong> 모드를 권장합니다. (500명 이상 발송 시에는 50~100명씩 분할 발송 권장)
+            </span>
+          </div>
+        )}
 
 
         {/* Action Button */}

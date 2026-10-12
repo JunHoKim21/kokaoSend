@@ -33,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight text-slate-900">
-                순원 말씀 알림이
+                다락방 말씀 알림이
               </span>
               <span className="text-[11px] font-semibold text-amber-800 bg-[#FEE500]/60 px-2 py-0.5 rounded-full border border-amber-300/40">
                 카카오톡 1:1 개별 전송
@@ -77,25 +77,25 @@ export const Header: React.FC<HeaderProps> = ({
             <span>이용 가이드</span>
           </button>
 
-          {/* Express Mode Toggle */}
+          {/* Speed Preset Switch */}
           <button
             onClick={onToggleExpressMode}
-            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
               expressMode
-                ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-xs'
-                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                ? 'bg-amber-50 text-amber-800 border-amber-300 shadow-2xs'
+                : 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs'
             }`}
-            title={expressMode ? '0.3~0.5초 고속 전송 활성화' : '1.5초 안전 전송 모드'}
+            title={expressMode ? '소규모(10~30명) 빠른 발송용 0.5초 모드입니다. 클릭 시 대량 안전 모드(1.5초)로 전환됩니다.' : '대량(50~500명) 카톡 스팸 제재 방지용 1.5초 안전 모드입니다. 클릭 시 소규모 쾌속 모드로 전환됩니다.'}
           >
             {expressMode ? (
               <>
-                <Zap className="w-3.5 h-3.5 text-blue-600 fill-blue-600" />
-                <span>초고속 쾌속 모드 활성</span>
+                <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                <span>소규모 쾌속 (0.5s)</span>
               </>
             ) : (
               <>
-                <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-slate-500">안전 모드 (1.5s)</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>대량 안전 (1.5s)</span>
               </>
             )}
           </button>

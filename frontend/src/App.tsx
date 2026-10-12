@@ -87,16 +87,16 @@ export default function App() {
   const currentGroupMembers = members.filter((m) => m.groupId === currentGroupId);
   const selectedMembers = currentGroupMembers.filter((m) => m.selected);
 
-  // Express mode toggles
+  // Express mode toggles (소규모 쾌속 0.5초 ↔ 대량 안전 1.5초)
   const handleToggleExpressMode = () => {
     const nextMode = !expressMode;
     setExpressMode(nextMode);
     if (nextMode) {
-      setSendDelay(0.3);
-      showToast('⚡ 초고속 쾌속 모드가 활성화되었습니다 (딜레이 0.3초)');
+      setSendDelay(0.5);
+      showToast('⚡ 소규모 쾌속 모드 (딜레이 0.5초)로 설정되었습니다.');
     } else {
       setSendDelay(1.5);
-      showToast('🛡️ 안전 전송 모드가 활성화되었습니다 (딜레이 1.5초)');
+      showToast('🛡️ 대량 안전 모드 (딜레이 1.5초)로 설정되었습니다. (카톡 스팸 제재 방지)');
     }
   };
 

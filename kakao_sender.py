@@ -38,11 +38,10 @@ def force_foreground(hwnd):
     if not hwnd or not win32gui.IsWindow(hwnd):
         return False
 
-    # 1. 창 복원
-    if win32gui.IsIconic(hwnd):
+    # 1. 창 복원 (아이콘화 또는 숨김 해제)
+    if win32gui.IsIconic(hwnd) or not win32gui.IsWindowVisible(hwnd):
         win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-    else:
-        win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+    win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
 
     # 2. HWND_TOPMOST 트릭으로 강제 돌출 (Windows 포커스 잠금 완전 해제)
     u32.keybd_event(0x12, 0, 0, 0)
@@ -52,10 +51,12 @@ def force_foreground(hwnd):
     win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_SHOWWINDOW)
     u32.keybd_event(0x12, 0, 2, 0)
 
-    # 3. 결정타: 좌측 사이드바 빈 공간(r[0] + 30, r[1] + 350) 물리 클릭으로 100% 포커스 확정
+    # 3. 메인 창인 경우 좌측 사이드바 빈 공간(r[0] + 30, r[1] + 350) 물리 클릭으로 100% 포커스 확정
     try:
-        r = win32gui.GetWindowRect(hwnd)
-        click_pos(r[0] + 30, r[1] + 350)
+        title = win32gui.GetWindowText(hwnd)
+        if title == "카카오톡":
+            r = win32gui.GetWindowRect(hwnd)
+            click_pos(r[0] + 30, r[1] + 350)
     except Exception:
         pass
     time.sleep(0.15)
@@ -115,22 +116,26 @@ def find_main_kakaotalk():
     def enum_cb(h, _):
         nonlocal found
         cls = win32gui.GetClassName(h)
-        if cls == "EVA_Window_Dblclk":
-            is_main = False
-            def ch_cb(ch, _):
-                nonlocal is_main
-                if "OnlineMainView" in win32gui.GetWindowText(ch):
-                    is_main = True
-                return True
-            win32gui.EnumChildWindows(h, ch_cb, None)
-            if is_main:
-                found = h
+        title = win32gui.GetWindowText(h)
+        if (cls.startswith("Qt") or cls == "EVA_Window_Dblclk") and title == "카카오톡":
+            try:
+                r = win32gui.GetWindowRect(h)
+                w, hh = r[2] - r[0], r[3] - r[1]
+                if w >= 250 and hh >= 350:
+                    found = h
+                    return False
+            except Exception:
+                pass
         return True
 
     win32gui.EnumWindows(enum_cb, None)
     if not found:
+        found = win32gui.FindWindow(None, "카카오톡")
+    if not found:
         found = win32gui.FindWindow("EVA_Window_Dblclk", "카카오톡")
     if found:
+        win32gui.ShowWindow(found, win32con.SW_RESTORE)
+        win32gui.ShowWindow(found, win32con.SW_SHOW)
         force_foreground(found)
     return found
 
@@ -170,52 +175,79 @@ def prepare_search(main_hwnd, search_mode="friend"):
         click_pos(r[0] + 30, r[1] + 55)
     time.sleep(0.2)
 
-    # 기존 검색창 X 버튼 클릭 (초기화)
+    # 기존 검색창 X 버튼 클릭 시도 (초기화)
     click_pos(r[2] - 30, r[1] + 105)
     time.sleep(0.15)
 
     # Ctrl + F 로 새 검색창 활성화
     press_hotkey(0x11, ord('F'))
-    time.sleep(0.2)
+    time.sleep(0.15)
+    # 기존 검색어 전체 선택(Ctrl+A) 후 백스페이스로 완전 초기화
+    press_hotkey(0x11, ord('A'))
+    time.sleep(0.05)
+    press_key(0x08)
+    time.sleep(0.1)
 
 
 
 
 # ──────────────────────────────────────────────────────────────
-# 열려 있는 카카오톡 1:1 대화방 창 목록 반환
+# 열려 있는 카카오톡 1:1 대화방 창 목록 반환 (Qt6 및 구버전 호환)
 # ──────────────────────────────────────────────────────────────
 def get_open_chat_hwnds(main_hwnd):
-    """main_hwnd 제외, RICHEDIT 자식을 가진 EVA_Window_Dblclk 집합"""
+    """main_hwnd 제외한 열려 있는 카카오톡 대화방 HWND 집합"""
     chats = set()
+    try:
+        _, main_pid = win32process.GetWindowThreadProcessId(main_hwnd)
+    except Exception:
+        main_pid = None
+
     def cb(h, _):
         if h == main_hwnd or not win32gui.IsWindowVisible(h):
             return True
-        if win32gui.GetClassName(h) != "EVA_Window_Dblclk":
+        try:
+            _, pid = win32process.GetWindowThreadProcessId(h)
+            if main_pid and pid != main_pid:
+                return True
+        except Exception:
             return True
-        has_rich = False
-        def cc(ch, _):
-            nonlocal has_rich
-            if "RICHEDIT" in win32gui.GetClassName(ch).upper():
-                has_rich = True
+
+        cls = win32gui.GetClassName(h)
+        title = win32gui.GetWindowText(h)
+
+        # 시스템/헬퍼/메인 창 제외
+        if not title or title in ("카카오톡", "KakaoTalkUI", "_q_titlebar", "QTrayIconMessageWindow", "MSCTFIME UI", "Default IME"):
             return True
-        win32gui.EnumChildWindows(h, cc, None)
-        if has_rich:
-            chats.add(h)
+        if "Observer" in cls or "Tray" in cls:
+            return True
+
+        # 클래스 검사: Qt 계열 창이거나 구버전 EVA_Window_Dblclk
+        if cls.startswith("Qt") or cls == "EVA_Window_Dblclk":
+            r = win32gui.GetWindowRect(h)
+            w = r[2] - r[0]
+            hh = r[3] - r[1]
+            if w >= 250 and hh >= 250:
+                chats.add(h)
         return True
+
     win32gui.EnumWindows(cb, None)
     return chats
 
 def close_all_chats(main_hwnd):
-    """열려 있는 모든 대화방 창 강제 닫기"""
+    """열려 있는 모든 대화방 창 닫기"""
     for h in get_open_chat_hwnds(main_hwnd):
         try:
-            win32gui.SendMessage(h, win32con.WM_SYSCOMMAND, win32con.SC_CLOSE, 0)
+            force_foreground(h)
+            press_key(0x1B) # Esc 키로 닫기
+            time.sleep(0.05)
+            if win32gui.IsWindow(h) and win32gui.IsWindowVisible(h):
+                win32gui.SendMessage(h, win32con.WM_SYSCOMMAND, win32con.SC_CLOSE, 0)
         except Exception:
             pass
     time.sleep(0.2)
 
 # ──────────────────────────────────────────────────────────────
-# 카카오톡 RICHEDIT (채팅 입력창) 검색: 대화방 창 + 메인 창 내부 모두 탐색
+# 카카오톡 RICHEDIT (채팅 입력창) 검색: 구버전 대화방 창 내부 탐색
 # ──────────────────────────────────────────────────────────────
 def find_richedit_in(hwnd):
     """hwnd 하위의 RICHEDIT 컨트롤 목록 반환"""
@@ -233,13 +265,14 @@ def find_photo_popup(exclude_hwnds):
         nonlocal popup
         if not win32gui.IsWindowVisible(h) or h in exclude_hwnds:
             return True
-        if win32gui.GetClassName(h) != "EVA_Window_Dblclk":
+        cls = win32gui.GetClassName(h)
+        if not (cls.startswith("Qt") or cls == "EVA_Window_Dblclk"):
             return True
         r = win32gui.GetWindowRect(h)
         w, hh = r[2] - r[0], r[3] - r[1]
-        if 200 < w < 520 and 200 < hh < 620:
+        if 200 < w < 550 and 200 < hh < 650:
             t = win32gui.GetWindowText(h)
-            if "오픈채팅" not in t:
+            if "오픈채팅" not in t and t not in ("카카오톡", "KakaoTalkUI", "_q_titlebar"):
                 popup = h
         return True
     win32gui.EnumWindows(cb, None)
@@ -254,7 +287,7 @@ def send_kakao_message(target_name, message, image_path=None, log_cb=None, searc
     search_mode: 'friend' (친구 탭 검색) | 'chat' (채팅방 탭 검색)
     1. 기존 대화방 모두 닫기
     2. 검색창 열고 이름 입력 → 결과 목록에서 선택(↓+Enter)
-    3. 새로 열린 대화방 창 감지 (최대 2초)
+    3. 새로 열린 대화방 창 감지 (최대 2.5초)
     4. 감지 성공 시에만 메시지 발송 (감지 실패 = 전송 중단, 오발송 절대 없음)
     """
     def log(msg):
@@ -280,7 +313,6 @@ def send_kakao_message(target_name, message, image_path=None, log_cb=None, searc
     # ④ 검색창 클린 준비 (모드에 따라 친구 탭 또는 채팅 탭으로 이동)
     prepare_search(main_hwnd, search_mode=search_mode)
 
-
     # ⑤ 이름 붙여넣기 → 검색 결과 대기 → Down(선택) → Enter로 대화방 열기
     paste_clipboard(target_name)
     time.sleep(0.5)          # 검색 결과 렌더링 대기
@@ -288,11 +320,9 @@ def send_kakao_message(target_name, message, image_path=None, log_cb=None, searc
     time.sleep(0.15)
     press_key(0x0D)          # Enter (대화방 창 오픈!)
 
-
-
-    # ⑥ 새 대화방 창 감지 (최대 2.0초)
+    # ⑥ 새 대화방 창 감지 (최대 2.5초)
     chat_hwnd = None
-    for _ in range(20):
+    for _ in range(25):
         time.sleep(0.1)
         after = get_open_chat_hwnds(main_hwnd)
         new_chats = after - before_hwnds
@@ -300,6 +330,14 @@ def send_kakao_message(target_name, message, image_path=None, log_cb=None, searc
             chat_hwnd = list(new_chats)[0]
             log(f"  → 대화방 창 감지 (HWND:{chat_hwnd})")
             break
+        else:
+            for h in after:
+                if target_name in win32gui.GetWindowText(h):
+                    chat_hwnd = h
+                    log(f"  → 대화방 창 감지(이름 일치, HWND:{chat_hwnd})")
+                    break
+            if chat_hwnd:
+                break
 
     # ⑦ 감지 실패 → 오발송 없이 즉시 중단
     if not chat_hwnd:
@@ -312,7 +350,7 @@ def send_kakao_message(target_name, message, image_path=None, log_cb=None, searc
     force_foreground(chat_hwnd)
     time.sleep(0.1)
 
-    # ⑧ 채팅 입력창 포커스 함수
+    # ⑧ 채팅 입력창 포커스 함수 (구버전 RichEdit + Qt6 좌표 클릭)
     def focus_input():
         rics = find_richedit_in(chat_hwnd)
         if rics:
@@ -346,11 +384,14 @@ def send_kakao_message(target_name, message, image_path=None, log_cb=None, searc
         press_key(0x0D)
         time.sleep(0.2)
 
-    # ⑪ 대화방 닫기 (SC_CLOSE 직접 전송)
+    # ⑪ 대화방 닫기 (Esc 우선 시도 후 SC_CLOSE)
     try:
         force_foreground(chat_hwnd)
         time.sleep(0.05)
-        win32gui.SendMessage(chat_hwnd, win32con.WM_SYSCOMMAND, win32con.SC_CLOSE, 0)
+        press_key(0x1B)
+        time.sleep(0.1)
+        if win32gui.IsWindow(chat_hwnd) and win32gui.IsWindowVisible(chat_hwnd):
+            win32gui.SendMessage(chat_hwnd, win32con.WM_SYSCOMMAND, win32con.SC_CLOSE, 0)
     except Exception:
         pass
     time.sleep(0.2)

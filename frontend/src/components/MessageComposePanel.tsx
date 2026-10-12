@@ -241,7 +241,7 @@ export const MessageComposePanel: React.FC<MessageComposePanelProps> = ({
             {[
               { tag: '{이름}', label: '{이름}' },
               { tag: '{직분}', label: '{직분}' },
-              { tag: '{순명}', label: '{순명}' },
+              { tag: '{다락방명}', label: '{다락방명}' },
               { tag: '{오늘날짜}', label: '{오늘날짜}' },
               { tag: '{요일}', label: '{요일}' },
             ].map(({ tag, label }) => (

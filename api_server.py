@@ -48,6 +48,7 @@ def format_personalized_message(template: str, member: dict, group_name: str) ->
     result = template
     result = result.replace("{이름}", member.get("name", ""))
     result = result.replace("{순명}", group_name)
+    result = result.replace("{다락방명}", group_name)
     result = result.replace("{직분}", role)
     result = result.replace("{오늘날짜}", date_str)
     result = result.replace("{요일}", days[now.weekday() + 1 % 7])
@@ -225,37 +226,80 @@ def serve_react(path):
     return "React 빌드 파일이 없습니다. frontend/dist 폴더를 확인하세요.", 404
 
 if __name__ == "__main__":
+    import subprocess
+    import webbrowser
+    import urllib.request
+
     print("===================================================")
-    print("   순원 말씀 알림이 데스크톱 앱을 실행합니다.")
+    print("   다락방 말씀 알림이 데스크톱 앱을 실행합니다.")
     print("===================================================")
 
     # 1. Flask 서버를 백그라운드 스레드로 기동
-    flask_thread = threading.Thread(
-        target=lambda: app.run(host="127.0.0.1", port=5000, debug=False, threaded=True),
-        daemon=True,
-    )
+    def run_flask():
+        try:
+            app.run(host="127.0.0.1", port=5000, debug=False, threaded=True)
+        except Exception as e:
+            print(f"[!] Flask 서버 오류: {e}")
+
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
-    # 2. 서버 시작 대기
-    time.sleep(0.8)
+    # 2. 서버 정상 응답 대기 (최대 5초)
+    app_url = "http://127.0.0.1:5000"
+    server_ready = False
+    for _ in range(25):
+        time.sleep(0.2)
+        try:
+            with urllib.request.urlopen(f"{app_url}/api/status", timeout=1) as resp:
+                if resp.status == 200:
+                    server_ready = True
+                    print("[+] Flask 서버가 정상 기동되었습니다.")
+                    break
+        except Exception:
+            pass
 
-    # 3. pywebview 전용 윈도우 창 실행
-    try:
-        import webview
-        window = webview.create_window(
-            title="순원 말씀 알림이",
-            url="http://127.0.0.1:5000",
-            width=1340,
-            height=860,
-            min_size=(1050, 680),
-            text_select=True,
-        )
-        # 창이 닫히면 전체 프로세스 자동 종료
-        webview.start()
-    except Exception as e:
-        import webbrowser
-        print(f"전용 창 실행 실패({e}), 기본 브라우저로 엽니다.")
-        webbrowser.open("http://127.0.0.1:5000")
+    # 3. 전용 데스크톱 창(Edge / Chrome App Mode) 실행
+    # --user-data-dir를 지정하여 기존 브라우저와 독립된 전용 앱 프로세스로 유지되며,
+    # 프로세스가 바로 종료되지 않고 사용자가 창을 닫을 때까지 유지됩니다.
+    profile_dir = os.path.join(os.environ.get("LOCALAPPDATA", EXE_DIR), "KakaoNotifier", "browser_profile")
+    os.makedirs(profile_dir, exist_ok=True)
+
+    browser_candidates = [
+        os.path.join(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"), "Microsoft", "Edge", "Application", "msedge.exe"),
+        os.path.join(os.environ.get("ProgramFiles", "C:\\Program Files"), "Microsoft", "Edge", "Application", "msedge.exe"),
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+        os.path.join(os.environ.get("ProgramFiles", "C:\\Program Files"), "Google", "Chrome", "Application", "chrome.exe"),
+        os.path.join(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"), "Google", "Chrome", "Application", "chrome.exe"),
+    ]
+
+    launched = False
+    for browser_exe in browser_candidates:
+        if browser_exe and os.path.exists(browser_exe):
+            try:
+                print(f"[+] 전용 앱 창을 실행합니다: {os.path.basename(browser_exe)}")
+                cmd = [
+                    browser_exe,
+                    f"--user-data-dir={profile_dir}",
+                    f"--app={app_url}",
+                    "--window-size=1340,860",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                ]
+                proc = subprocess.Popen(cmd)
+                launched = True
+                proc.wait()  # 사용자가 전용 창을 닫을 때까지 프로세스 대기
+                break
+            except Exception as e:
+                print(f"[-] 전용 창 실행 오류: {e}")
+
+    # 브라우저 실행 파일이 없는 극단적 환경의 경우 기본 브라우저 탭으로 폴백
+    if not launched:
+        print("[!] 기본 웹 브라우저로 엽니다.")
+        webbrowser.open(app_url)
         flask_thread.join()
+
+    # 발송 작업 중 창이 닫혔다면 발송이 끝날 때까지 대기 후 종료
+    while _is_sending:
+        time.sleep(0.5)
 
 
