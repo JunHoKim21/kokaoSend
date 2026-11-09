@@ -20,7 +20,7 @@ EXE_DIR = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen
 # kakao_sender 임포트
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, EXE_DIR)
-from kakao_sender import send_kakao_message
+from kakao_sender import send_kakao_message_atomic, send_kakao_message
 
 app = Flask(__name__, static_folder=os.path.join(BASE_DIR, "frontend", "dist"), static_url_path="")
 CORS(app)
@@ -140,7 +140,7 @@ def start_send():
             def log_cb(msg):
                 _send_queue.put({"type": "log", "message": msg, "memberName": name})
 
-            ok = send_kakao_message(
+            ok = send_kakao_message_atomic(
                 target_name=name,
                 message=personalized,
                 image_path=image_path,
